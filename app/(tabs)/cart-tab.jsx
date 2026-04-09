@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-
 import { AppColors, FontFamily, Spacing, BorderRadius } from '@/constants/theme';
 import { useCart } from '@/context/CartContext';
 import QuantitySelector from '@/components/QuantitySelector';
