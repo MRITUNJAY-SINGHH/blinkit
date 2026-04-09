@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AppColors } from '@/constants/theme';
+import { AppColors, FontFamily } from '@/constants/theme';
 
 export default function LoaderScreen() {
   const router = useRouter();
@@ -12,14 +12,14 @@ export default function LoaderScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
       <ActivityIndicator size="large" color={AppColors.primaryGreen} />
-      <Text style={styles.text}>Setting up your store...</Text>
+      <Text style={s.text}>Setting up your store...</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: AppColors.white, alignItems: 'center', justifyContent: 'center' },
-  text: { marginTop: 20, fontSize: 16, color: AppColors.secondaryGrey, fontWeight: '500' },
+  text: { marginTop: 20, fontSize: 16, color: AppColors.secondaryGrey, fontFamily: FontFamily.bodyMedium },
 });

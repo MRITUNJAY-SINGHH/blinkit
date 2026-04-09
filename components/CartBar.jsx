@@ -1,66 +1,69 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  useSharedValue, useAnimatedStyle, withSpring,
-} from 'react-native-reanimated';
-import { AppColors, Spacing, BorderRadius } from '@/constants/theme';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { AppColors, FontFamily, Spacing, BorderRadius } from '@/constants/theme';
 import { useCart } from '@/context/CartContext';
 
 export default function CartBar() {
   const router = useRouter();
-  const { cartCount, cartTotal } = useCart();
-  const translateY = useSharedValue(100);
+  const { cartCount, cartTotal, items } = useCart();
+  const translateY = useSharedValue(80);
 
   useEffect(() => {
-    translateY.value = withSpring(cartCount > 0 ? 0 : 100, { damping: 15, stiffness: 150 });
+    translateY.value = withSpring(cartCount > 0 ? 0 : 80, { damping: 18, stiffness: 180 });
   }, [cartCount]);
 
   const anim = useAnimatedStyle(() => ({ transform: [{ translateY: translateY.value }] }));
 
   if (cartCount === 0) return null;
 
+  const firstItem = items[0];
+
   return (
-    <Animated.View style={[styles.wrap, anim]}>
-      <TouchableOpacity style={styles.bar} onPress={() => router.push('/cart')} activeOpacity={0.9}>
-        <View style={styles.left}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{cartCount}</Text>
-          </View>
+    <Animated.View style={[s.wrap, anim]}>
+      <TouchableOpacity style={s.bar} onPress={() => router.push('/cart')} activeOpacity={0.9}>
+        {/* Left: item thumbnail + count */}
+        <View style={s.left}>
+          {firstItem?.image ? (
+            <Image source={{ uri: firstItem.image }} style={s.thumb} resizeMode="cover" />
+          ) : (
+            <View style={[s.thumb, s.thumbFallback]}>
+              <Ionicons name="cart" size={16} color="#FFF" />
+            </View>
+          )}
           <View>
-            <Text style={styles.itemText}>
-              {cartCount} item{cartCount > 1 ? 's' : ''} · ₹{cartTotal}
-            </Text>
-            <Text style={styles.extra}>Extra charges may apply</Text>
+            <Text style={s.viewText}>View cart</Text>
+            <Text style={s.countText}>{cartCount} item{cartCount > 1 ? 's' : ''}</Text>
           </View>
         </View>
-        <View style={styles.right}>
-          <Text style={styles.viewText}>View Cart</Text>
-          <Ionicons name="arrow-forward" size={18} color={AppColors.white} />
+        {/* Right: total + arrow */}
+        <View style={s.right}>
+          <Text style={s.totalText}>₹{cartTotal}</Text>
+          <Ionicons name="chevron-forward" size={18} color="#FFF" />
         </View>
       </TouchableOpacity>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { position: 'absolute', bottom: 65, left: Spacing.lg, right: Spacing.lg, zIndex: 100 },
+const s = StyleSheet.create({
+  wrap: {
+    position: 'absolute', bottom: 2, left: Spacing.md, right: Spacing.md, zIndex: 90,
+  },
   bar: {
-    backgroundColor: AppColors.primaryGreen, borderRadius: BorderRadius.lg,
+    backgroundColor: '#0D8320', borderRadius: BorderRadius.xl,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg,
+    paddingVertical: 10, paddingHorizontal: Spacing.lg,
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 8, elevation: 8,
+    shadowOpacity: 0.25, shadowRadius: 8, elevation: 10,
   },
   left: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  badge: {
-    backgroundColor: AppColors.white, borderRadius: BorderRadius.full,
-    width: 24, height: 24, alignItems: 'center', justifyContent: 'center',
-  },
-  badgeText: { color: AppColors.primaryGreen, fontSize: 12, fontWeight: '700' },
-  itemText: { color: AppColors.white, fontSize: 14, fontWeight: '600' },
-  extra: { color: 'rgba(255,255,255,0.7)', fontSize: 10 },
+  thumb: { width: 36, height: 36, borderRadius: 8, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)' },
+  thumbFallback: { backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  viewText: { color: '#FFF', fontSize: 14, fontFamily: FontFamily.headingSemiBold },
+  countText: { color: 'rgba(255,255,255,0.75)', fontSize: 11, fontFamily: FontFamily.body },
   right: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  viewText: { color: AppColors.white, fontSize: 14, fontWeight: '700' },
+  totalText: { color: '#FFF', fontSize: 15, fontFamily: FontFamily.heading },
 });

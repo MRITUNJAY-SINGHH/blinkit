@@ -1,151 +1,174 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { AppColors, Spacing, BorderRadius } from '@/constants/theme';
+import { AppColors, FontFamily, Spacing, BorderRadius } from '@/constants/theme';
 import { useCart } from '@/context/CartContext';
-import QuantitySelector from '@/components/QuantitySelector';
 
-export default function CartScreen() {
+export default function CheckoutScreen() {
   const router = useRouter();
-  const { items, cartTotal, updateQuantity, clearCart } = useCart();
+  const { items, cartTotal, clearCart } = useCart();
   const deliveryFee = items.length > 0 ? 25 : 0;
-  const totalSaved = items.reduce((s, i) => s + (i.mrp - i.price) * i.quantity, 0);
+  const [selectedPayment, setSelectedPayment] = useState('upi');
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <View style={[styles.emojiBox, { backgroundColor: item.bgColor }]}>
-        <Text style={{ fontSize: 32 }}>{item.emoji}</Text>
-      </View>
-      <View style={styles.cardInfo}>
-        <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
-        <Text style={styles.cardSize}>{item.size}</Text>
-        <View style={styles.cardPriceRow}>
-          <Text style={styles.cardPrice}>₹{item.price}</Text>
-          <Text style={styles.cardMrp}>₹{item.mrp}</Text>
-        </View>
-      </View>
-      <QuantitySelector
-        quantity={item.quantity}
-        onIncrease={() => updateQuantity(item.id, item.quantity + 1)}
-        onDecrease={() => updateQuantity(item.id, item.quantity - 1)}
-      />
-    </View>
-  );
+  const payments = [
+    { id: 'upi', name: 'UPI / Google Pay', icon: 'phone-portrait-outline', sub: 'Pay via any UPI app' },
+    { id: 'card', name: 'Credit / Debit Card', icon: 'card-outline', sub: 'Visa, Mastercard, RuPay' },
+    { id: 'cod', name: 'Cash on Delivery', icon: 'cash-outline', sub: 'Pay when order arrives' },
+  ];
+
+  const placeOrder = () => {
+    Alert.alert('Order Placed! 🎉', 'Your order will be delivered in 10 minutes.', [
+      { text: 'OK', onPress: () => { clearCart(); router.replace('/(tabs)'); } }
+    ]);
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={s.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={AppColors.primaryBlack} />
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+          <Ionicons name="arrow-back" size={22} color={AppColors.primaryBlack} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Your Cart</Text>
-        {items.length > 0 && (
-          <TouchableOpacity onPress={clearCart}>
-            <Text style={styles.clearText}>Clear</Text>
-          </TouchableOpacity>
-        )}
+        <Text style={s.headerTitle}>Checkout</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      {items.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={{ fontSize: 64 }}>🛒</Text>
-          <Text style={styles.emptyTitle}>Your cart is empty</Text>
-          <Text style={styles.emptyDesc}>Add items to get started</Text>
-          <TouchableOpacity style={styles.shopBtn} onPress={() => router.back()}>
-            <Text style={styles.shopBtnText}>Start Shopping</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <>
-          <FlatList
-            data={items}
-            keyExtractor={i => i.id}
-            renderItem={renderItem}
-            contentContainerStyle={{ paddingHorizontal: Spacing.lg, paddingBottom: 220 }}
-          />
-
-          {/* Bill Details */}
-          <View style={styles.billContainer}>
-            <Text style={styles.billTitle}>Bill Details</Text>
-            <View style={styles.billRow}>
-              <Text style={styles.billLabel}>Item Total</Text>
-              <Text style={styles.billValue}>₹{cartTotal}</Text>
-            </View>
-            <View style={styles.billRow}>
-              <Text style={styles.billLabel}>Delivery Fee</Text>
-              <Text style={styles.billValue}>₹{deliveryFee}</Text>
-            </View>
-            <View style={styles.billRow}>
-              <Text style={[styles.billLabel, { color: AppColors.primaryGreen }]}>You Save</Text>
-              <Text style={[styles.billValue, { color: AppColors.primaryGreen }]}>-₹{totalSaved}</Text>
-            </View>
-            <View style={[styles.billRow, styles.totalRow]}>
-              <Text style={styles.totalLabel}>Grand Total</Text>
-              <Text style={styles.totalValue}>₹{cartTotal + deliveryFee}</Text>
+      <FlatList data={[1]} keyExtractor={() => '1'} contentContainerStyle={{ paddingBottom: 140 }}
+        renderItem={() => (
+          <View>
+            {/* Delivery Address */}
+            <View style={s.section}>
+              <View style={s.sectionHead}>
+                <View style={s.iconCircle}><Ionicons name="location" size={18} color={AppColors.primaryGreen} /></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.sectionLabel}>Delivery Address</Text>
+                  <Text style={s.addressText}>HOME - 123 Main Street, City</Text>
+                </View>
+                <TouchableOpacity><Text style={s.changeText}>Change</Text></TouchableOpacity>
+              </View>
             </View>
 
-            <TouchableOpacity style={styles.placeBtn}>
-              <Text style={styles.placeBtnText}>Place Order · ₹{cartTotal + deliveryFee}</Text>
-            </TouchableOpacity>
+            {/* Delivery Time */}
+            <View style={s.delivBanner}>
+              <Ionicons name="flash" size={20} color="#FF6F00" />
+              <View>
+                <Text style={s.delivTitle}>Delivery in 10 minutes</Text>
+                <Text style={s.delivSub}>Shipment of {items.length} item{items.length > 1 ? 's' : ''}</Text>
+              </View>
+            </View>
+
+            {/* Items Summary */}
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Order Summary</Text>
+              {items.map(item => (
+                <View key={item.id} style={s.itemRow}>
+                  {item.image ? (
+                    <Image source={{ uri: item.image }} style={s.itemImg} resizeMode="cover" />
+                  ) : (
+                    <View style={[s.itemImg, s.itemImgFallback]}>
+                      <Text style={{ fontSize: 18 }}>{item.emoji || '🍽️'}</Text>
+                    </View>
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.itemName} numberOfLines={1}>{item.name}</Text>
+                    <Text style={s.itemQty}>{item.size} × {item.quantity}</Text>
+                  </View>
+                  <Text style={s.itemPrice}>₹{item.price * item.quantity}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Payment Method */}
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Payment Method</Text>
+              {payments.map(p => (
+                <TouchableOpacity key={p.id} style={[s.paymentRow, selectedPayment === p.id && s.paymentSelected]}
+                  onPress={() => setSelectedPayment(p.id)}>
+                  <View style={s.radioOuter}>
+                    {selectedPayment === p.id && <View style={s.radioInner} />}
+                  </View>
+                  <Ionicons name={p.icon} size={20} color={selectedPayment === p.id ? AppColors.primaryGreen : AppColors.secondaryGrey} />
+                  <View>
+                    <Text style={s.paymentName}>{p.name}</Text>
+                    <Text style={s.paymentSub}>{p.sub}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Bill */}
+            <View style={s.bill}>
+              <Text style={s.billTitle}>Bill Details</Text>
+              <View style={s.billRow}><Text style={s.billLabel}>Item Total</Text><Text style={s.billVal}>₹{cartTotal}</Text></View>
+              <View style={s.billRow}><Text style={s.billLabel}>Delivery Fee</Text><Text style={s.billVal}>₹{deliveryFee}</Text></View>
+              <View style={s.billRow}><Text style={s.billLabel}>Platform Fee</Text><Text style={[s.billVal, { color: AppColors.primaryGreen }]}>FREE</Text></View>
+              <View style={[s.billRow, s.totalRow]}>
+                <Text style={s.totalLabel}>To Pay</Text>
+                <Text style={s.totalVal}>₹{cartTotal + deliveryFee}</Text>
+              </View>
+            </View>
           </View>
-        </>
-      )}
+        )}
+      />
+
+      {/* Bottom CTA */}
+      <View style={s.bottomBar}>
+        <TouchableOpacity style={s.placeBtn} onPress={placeOrder} activeOpacity={0.8}>
+          <View>
+            <Text style={s.placeTotal}>₹{cartTotal + deliveryFee}</Text>
+            <Text style={s.placeSub}>TOTAL</Text>
+          </View>
+          <View style={s.placeRight}>
+            <Text style={s.placeText}>Place Order</Text>
+            <Ionicons name="arrow-forward" size={20} color="#FFF" />
+          </View>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: AppColors.background },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: AppColors.primaryBlack },
-  clearText: { fontSize: 14, fontWeight: '600', color: AppColors.error },
-  card: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.md,
-    backgroundColor: AppColors.white, borderRadius: BorderRadius.lg,
-    padding: Spacing.md, marginBottom: Spacing.md,
-    borderWidth: 1, borderColor: AppColors.cardBorder,
-  },
-  emojiBox: {
-    width: 60, height: 60, borderRadius: BorderRadius.md,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  cardInfo: { flex: 1 },
-  cardName: { fontSize: 14, fontWeight: '600', color: AppColors.primaryBlack },
-  cardSize: { fontSize: 12, color: AppColors.secondaryGrey, marginTop: 2 },
-  cardPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  cardPrice: { fontSize: 14, fontWeight: '700', color: AppColors.primaryBlack },
-  cardMrp: { fontSize: 12, color: AppColors.secondaryGrey, textDecorationLine: 'line-through' },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: AppColors.primaryBlack, marginTop: Spacing.lg },
-  emptyDesc: { fontSize: 14, color: AppColors.secondaryGrey, marginTop: Spacing.sm },
-  shopBtn: {
-    backgroundColor: AppColors.primaryGreen, borderRadius: BorderRadius.lg,
-    paddingHorizontal: 32, paddingVertical: Spacing.md, marginTop: Spacing.xxl,
-  },
-  shopBtnText: { color: AppColors.white, fontSize: 16, fontWeight: '700' },
-  billContainer: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    backgroundColor: AppColors.white, paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg,
-    paddingBottom: Spacing.xxxl, borderTopLeftRadius: BorderRadius.xl, borderTopRightRadius: BorderRadius.xl,
-    shadowColor: '#000', shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1, shadowRadius: 8, elevation: 10,
-  },
-  billTitle: { fontSize: 16, fontWeight: '700', color: AppColors.primaryBlack, marginBottom: Spacing.md },
-  billRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.sm },
-  billLabel: { fontSize: 14, color: AppColors.secondaryGrey },
-  billValue: { fontSize: 14, fontWeight: '500', color: AppColors.primaryBlack },
-  totalRow: { borderTopWidth: 1, borderTopColor: AppColors.cardBorder, paddingTop: Spacing.sm, marginTop: Spacing.sm },
-  totalLabel: { fontSize: 16, fontWeight: '700', color: AppColors.primaryBlack },
-  totalValue: { fontSize: 16, fontWeight: '800', color: AppColors.primaryBlack },
-  placeBtn: {
-    backgroundColor: AppColors.primaryGreen, borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.lg, alignItems: 'center', marginTop: Spacing.lg,
-  },
-  placeBtnText: { color: AppColors.white, fontSize: 16, fontWeight: '700' },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F7F7F7' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, backgroundColor: AppColors.white },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: AppColors.lightGrey, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontSize: 18, fontFamily: FontFamily.heading, color: AppColors.primaryBlack },
+  section: { backgroundColor: AppColors.white, padding: Spacing.lg, marginBottom: 8 },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  iconCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: AppColors.lightGreen, alignItems: 'center', justifyContent: 'center' },
+  sectionLabel: { fontSize: 11, fontFamily: FontFamily.bodySemiBold, color: AppColors.secondaryGrey, textTransform: 'uppercase' },
+  addressText: { fontSize: 14, fontFamily: FontFamily.bodyMedium, color: AppColors.primaryBlack, marginTop: 2 },
+  changeText: { fontSize: 13, fontFamily: FontFamily.bodySemiBold, color: AppColors.primaryGreen },
+  delivBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: '#FFF8E1', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, marginBottom: 8 },
+  delivTitle: { fontSize: 14, fontFamily: FontFamily.headingSemiBold, color: AppColors.primaryBlack },
+  delivSub: { fontSize: 12, fontFamily: FontFamily.body, color: AppColors.secondaryGrey, marginTop: 1 },
+  sectionTitle: { fontSize: 15, fontFamily: FontFamily.headingSemiBold, color: AppColors.primaryBlack, marginBottom: Spacing.md },
+  itemRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
+  itemImg: { width: 44, height: 44, borderRadius: 8 },
+  itemImgFallback: { backgroundColor: '#FFF3E0', alignItems: 'center', justifyContent: 'center' },
+  itemName: { fontSize: 13, fontFamily: FontFamily.bodyMedium, color: AppColors.primaryBlack },
+  itemQty: { fontSize: 11, fontFamily: FontFamily.body, color: AppColors.secondaryGrey, marginTop: 2 },
+  itemPrice: { fontSize: 14, fontFamily: FontFamily.bodyBold, color: AppColors.primaryBlack },
+  paymentRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.md, borderRadius: BorderRadius.lg, paddingHorizontal: Spacing.sm, marginBottom: 4 },
+  paymentSelected: { backgroundColor: AppColors.lightGreen },
+  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: AppColors.primaryGreen, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: AppColors.primaryGreen },
+  paymentName: { fontSize: 14, fontFamily: FontFamily.bodySemiBold, color: AppColors.primaryBlack },
+  paymentSub: { fontSize: 11, fontFamily: FontFamily.body, color: AppColors.secondaryGrey },
+  bill: { backgroundColor: AppColors.white, padding: Spacing.lg },
+  billTitle: { fontSize: 14, fontFamily: FontFamily.headingSemiBold, color: AppColors.primaryBlack, marginBottom: Spacing.sm },
+  billRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  billLabel: { fontSize: 13, fontFamily: FontFamily.body, color: AppColors.secondaryGrey },
+  billVal: { fontSize: 13, fontFamily: FontFamily.bodyMedium, color: AppColors.primaryBlack },
+  totalRow: { borderTopWidth: 1, borderTopColor: AppColors.cardBorder, paddingTop: Spacing.sm, marginTop: 4 },
+  totalLabel: { fontSize: 16, fontFamily: FontFamily.heading, color: AppColors.primaryBlack },
+  totalVal: { fontSize: 16, fontFamily: FontFamily.heading, color: AppColors.primaryBlack },
+  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: AppColors.white, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, paddingBottom: Spacing.xxxl, borderTopWidth: 1, borderTopColor: '#F0F0F0' },
+  placeBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#0D8320', borderRadius: BorderRadius.lg, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.lg },
+  placeTotal: { color: '#FFF', fontSize: 18, fontFamily: FontFamily.heading },
+  placeSub: { color: 'rgba(255,255,255,0.7)', fontSize: 9, fontFamily: FontFamily.bodySemiBold },
+  placeRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  placeText: { color: '#FFF', fontSize: 16, fontFamily: FontFamily.heading },
 });
