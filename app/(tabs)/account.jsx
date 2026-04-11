@@ -43,7 +43,7 @@ export default function AccountScreen() {
                   <Text style={{ fontSize: 32 }}>👤</Text>
                </View>
                <View>
-                  <Text style={styles.name}>QuickComm User</Text>
+                  <Text style={styles.name}>Bachat Bazar User</Text>
                   <Text style={styles.phone}>+91 98765 43210</Text>
                </View>
                <Ionicons

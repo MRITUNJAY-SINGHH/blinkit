@@ -39,7 +39,7 @@ export default function LoginScreen() {
                <View style={s.logoCircle}>
                   <Text style={s.logoEmoji}>🛒</Text>
                </View>
-               <Text style={s.logoText}>QuickComm</Text>
+               <Text style={s.logoText}>Bachat Bazar</Text>
                <Text style={s.tagline}>Groceries delivered in minutes</Text>
             </View>
 

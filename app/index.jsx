@@ -49,7 +49,7 @@ export default function SplashScreen() {
       <View style={s.bg}>
          <Animated.View style={[s.center, logoAnim]}>
             <Text style={s.emoji}>🛒</Text>
-            <Text style={s.logo}>QuickComm</Text>
+            <Text style={s.logo}>Bachat Bazar</Text>
          </Animated.View>
          <Animated.View style={tagAnim}>
             <Text style={s.tag}>Delivery in minutes</Text>

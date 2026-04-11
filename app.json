@@ -1,11 +1,11 @@
 {
    "expo": {
-      "name": "QuickCart",
-      "slug": "quickcart",
+      "name": "Bachat Bazar",
+      "slug": "bachat-bazar",
       "version": "1.0.0",
       "orientation": "portrait",
       "icon": "./assets/images/icon.png",
-      "scheme": "quickcart",
+      "scheme": "bachat-bazar",
       "userInterfaceStyle": "automatic",
       "newArchEnabled": true,
       "ios": {

@@ -432,7 +432,7 @@ export default function HomeScreen() {
                      { color: heroTheme.label, fontSize: isDay ? 24 : 27 },
                   ]}
                >
-                  QuickCart in
+                  Bachat Bazar in
                </Text>
                <View style={styles.heroTitleRow}>
                   <Text
