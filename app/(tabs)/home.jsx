@@ -1,6 +1,5 @@
 import CartBar from '@/components/CartBar';
 import ProductCard from '@/components/ProductCard';
-import { categories } from '@/constants/categories';
 import { BorderRadius, FontFamily, Spacing } from '@/constants/theme';
 import { getAllFoods, getCategories } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +9,9 @@ import {
    ActivityIndicator,
    Animated,
    FlatList,
+   Image,
+   Modal,
+   Pressable,
    StyleSheet,
    Text,
    TouchableOpacity,
@@ -29,31 +31,22 @@ const quickFilters = [
    { id: 'pharmacy', label: 'Pharmacy', icon: 'medkit-outline' },
 ];
 
-const promoCards = [
-   {
-      id: 'launch',
-      label: 'NEWLY LAUNCHED',
-      title: 'Fresh Picks',
-      subtitle: 'For You',
-      bg: '#FFEAB5',
-      emoji: '🥭',
-   },
-   {
-      id: 'featured',
-      label: 'Featured',
-      title: 'Summer Special',
-      subtitle: 'Cool & Crispy',
-      bg: '#E4F3FF',
-      emoji: '🧊',
-   },
-   {
-      id: 'deals',
-      label: 'Featured',
-      title: 'Snacks Fest',
-      subtitle: 'Flat 20% OFF',
-      bg: '#FFE0BA',
-      emoji: '🍿',
-   },
+const groceryBannerImages = {
+   one: require('../../assets/images/groceries-1.png'),
+   two: require('../../assets/images/groceries-2.png'),
+   three: require('../../assets/images/groceries-3.png'),
+   four: require('../../assets/images/groceries-4.png'),
+};
+
+const groceryCards = [
+   { id: 'g-2', image: groceryBannerImages.two },
+   { id: 'g-4', image: groceryBannerImages.four },
+   { id: 'g-3', image: groceryBannerImages.three },
+   { id: 'g-1', image: groceryBannerImages.one },
+   { id: 'g-5', image: groceryBannerImages.two },
+   { id: 'g-6', image: groceryBannerImages.four },
+   { id: 'g-7', image: groceryBannerImages.three },
+   { id: 'g-8', image: groceryBannerImages.one },
 ];
 
 const searchPlaceholders = [
@@ -65,29 +58,222 @@ const searchPlaceholders = [
    'Search bread...',
 ];
 
-function pickDistinctByCategory(items, count) {
-   const buckets = items.reduce((acc, item) => {
-      const key = item.category || 'misc';
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(item);
-      return acc;
-   }, {});
+const addressActions = [
+   {
+      id: 'current',
+      title: 'Use current location',
+      subtitle: 'Detect your live location',
+      icon: 'location-outline',
+   },
+   {
+      id: 'new',
+      title: 'Add new address',
+      subtitle: 'Save home, office or other locations',
+      icon: 'add',
+   },
+   {
+      id: 'request',
+      title: 'Request address from someone else',
+      subtitle: 'Share an address request on WhatsApp',
+      icon: 'chatbubble-ellipses-outline',
+   },
+   {
+      id: 'import',
+      title: 'Import your addresses from Zomato',
+      subtitle: 'Bring in saved locations quickly',
+      icon: 'download-outline',
+   },
+];
 
-   const keys = Object.keys(buckets);
-   const selected = [];
-   let round = 0;
+const grocerySectionItems = [
+   {
+      id: 'veg-fruit',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-5_4.png',
+   },
+   {
+      id: 'atta-rice-dal',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-6_5.png',
+   },
+   {
+      id: 'oil-ghee',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2025-11/Slice-7-1_0.png',
+   },
+   {
+      id: 'dairy-bread-eggs',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-8_4.png',
+   },
+   {
+      id: 'bakery-biscuits',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-4_9.png',
+   },
+   {
+      id: 'dry-fruits-cereals',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-2_10.png',
+   },
+   {
+      id: 'chicken-meat-fish',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-12.png',
+   },
+   {
+      id: 'kitchenware',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-11.png',
+   },
+   {
+      id: 'veg-fruit-repeat',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-5_4.png',
+   },
+];
 
-   while (selected.length < count && keys.length > 0 && round < 12) {
-      keys.forEach((key) => {
-         if (selected.length < count && buckets[key]?.length) {
-            selected.push(buckets[key].shift());
-         }
-      });
-      round += 1;
-   }
+const snacksSectionItems = [
+   {
+      id: 'chips-namkeen',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-20.png',
+   },
+   {
+      id: 'sweets-chocolates',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-17.png',
+   },
+   {
+      id: 'drinks-juices',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-12/paan-corner_web.png',
+   },
+   {
+      id: 'tea-coffee',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-4_9.png',
+   },
+   {
+      id: 'instant-food',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-6_5.png',
+   },
+   {
+      id: 'ice-cream',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2025-11/Slice-7-1_0.png',
+   },
+   {
+      id: 'breakfast',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-8_4.png',
+   },
+   {
+      id: 'personal-care',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-12.png',
+   },
+   {
+      id: 'chips-repeat',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=270/layout-engine/2022-11/Slice-20.png',
+   },
+];
 
-   return selected;
-}
+const frequentlyBoughtTogetherItems = [
+   {
+      id: 'kurkure',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=360/da/cms-assets/cms/product/02a26f91-4c2d-400c-84c3-1d33b222acb4.png',
+   },
+   {
+      id: 'curls',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=540/da/cms-assets/cms/product/5b450106-f5f1-4c8d-a60f-43244faa3c67.png',
+   },
+   {
+      id: 'crax',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=540/da/cms-assets/cms/product/7f63a457-0457-4e22-a5d9-8a9e33b9a547.png',
+   },
+   {
+      id: 'natkhat',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=540/da/cms-assets/cms/product/a04d9ab3-8941-4208-a60e-746f0e0b68f1.png',
+   },
+   {
+      id: 'crax-cheese-ball',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=540/da/cms-assets/cms/product/f3464dcd-07f3-4b0c-9821-5ea882c57d02.png',
+   },
+   {
+      id: 'doritos',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=540/da/cms-assets/cms/product/43f0ac75-1806-44c8-a337-88e409f9bc35.png',
+   },
+   {
+      id: 'kitkat',
+      image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=540/da/cms-assets/cms/product/rc-upload-1775469517019-153.png',
+   },
+];
+
+const frequentlyBoughtTogetherCards = [
+   {
+      id: 'oil-ghee-masala',
+      title: 'Oil, Ghee & Masala',
+      moreText: '+4 more',
+      bg: '#DDEEEF',
+      items: [
+         frequentlyBoughtTogetherItems[0],
+         frequentlyBoughtTogetherItems[1],
+      ],
+   },
+   {
+      id: 'chips-namkeen',
+      title: 'Chips & Namkeen',
+      moreText: '+1 more',
+      bg: '#EEF6E6',
+      items: [
+         frequentlyBoughtTogetherItems[2],
+         frequentlyBoughtTogetherItems[3],
+      ],
+   },
+   {
+      id: 'rajma-chole-dal',
+      title: 'Rajma, Chole & Dal',
+      moreText: '',
+      bg: '#EEF2F8',
+      items: [
+         frequentlyBoughtTogetherItems[4],
+         frequentlyBoughtTogetherItems[5],
+      ],
+   },
+   {
+      id: 'drinks-juices',
+      title: 'Drinks & Juices',
+      moreText: '+1 more',
+      bg: '#E3F4EC',
+      items: [
+         frequentlyBoughtTogetherItems[6],
+         frequentlyBoughtTogetherItems[0],
+      ],
+   },
+];
+
+const previouslyBoughtDemoProducts = [
+   {
+      id: 'demo-kurkure',
+      title: 'Kurkure Masala Munch',
+      description: 'Crunchy snack with tangy masala flavour',
+      price: '₹20',
+      image: frequentlyBoughtTogetherItems[0].image,
+   },
+   {
+      id: 'demo-curls',
+      title: 'Curls Party Snack',
+      description: 'Light, crispy and perfect for tea time',
+      price: '₹35',
+      image: frequentlyBoughtTogetherItems[1].image,
+   },
+   {
+      id: 'demo-crax',
+      title: 'Crax Spicy Rings',
+      description: 'Spicy rings snack for quick bites',
+      price: '₹18',
+      image: frequentlyBoughtTogetherItems[2].image,
+   },
+   {
+      id: 'demo-natkhat',
+      title: 'Natkhat Snack Mix',
+      description: 'Mixed crunchy snack for every mood',
+      price: '₹28',
+      image: frequentlyBoughtTogetherItems[3].image,
+   },
+   {
+      id: 'demo-kitkat',
+      title: 'KitKat Chocolate Bar',
+      description: 'Chocolate treat for a sweet break',
+      price: '₹40',
+      image: frequentlyBoughtTogetherItems[6].image,
+   },
+];
 
 export default function HomeScreen() {
    const router = useRouter();
@@ -100,6 +286,7 @@ export default function HomeScreen() {
    const [placeholder, setPlaceholder] = useState('');
    const [phraseIdx, setPhraseIdx] = useState(0);
    const [charIdx, setCharIdx] = useState(0);
+   const [locationSheetVisible, setLocationSheetVisible] = useState(false);
 
    // Smooth typewriter effect for placeholder
    useEffect(() => {
@@ -153,19 +340,21 @@ export default function HomeScreen() {
    const heroTheme = useMemo(() => {
       if (isNight) {
          return {
-            bg: '#2C323F',
-            bgSoft: '#4C5464',
-            label: '#E6EAF2',
+            bg: '#262A33',
+            bgSoft: '#4E5666',
+            label: '#EEF2F7',
             title: '#FFFFFF',
+            shadow: 'rgba(0,0,0,0.28)',
          };
       }
 
       if (isMorning) {
          return {
             bg: '#EAF6DB',
-            bgSoft: '#F6C84A',
+            bgSoft: '#F4D55B',
             label: '#243B2A',
-            title: '#1E2A1F',
+            title: '#172117',
+            shadow: 'rgba(0,0,0,0.08)',
          };
       }
 
@@ -174,10 +363,9 @@ export default function HomeScreen() {
          bgSoft: '#A8D5FF',
          label: '#22344F',
          title: '#18263D',
+         shadow: 'rgba(0,0,0,0.1)',
       };
    }, [isMorning, isNight]);
-
-   const allProducts = foods;
 
    const stickyShadow = scrollY.interpolate({
       inputRange: [0, 110],
@@ -208,83 +396,7 @@ export default function HomeScreen() {
       return grouped;
    }, [foods, apiCategories]);
 
-   const hotProducts = useMemo(
-      () => allProducts.filter((item) => item.isHotProduct),
-      [allProducts],
-   );
-
-   const recommendedProducts = useMemo(
-      () => allProducts.filter((item) => item.isRecommended),
-      [allProducts],
-   );
-
-   const previouslyBought = useMemo(() => {
-      const source = hotProducts.length ? hotProducts : allProducts;
-      return pickDistinctByCategory(source, 8);
-   }, [allProducts, hotProducts]);
-
-   const summerSpecials = useMemo(() => {
-      const source = allProducts.filter((item) => {
-         const cat = (item.category || '').toLowerCase();
-         const name = (item.name || '').toLowerCase();
-         if (activeFilter === 'all') return true;
-         if (activeFilter === 'summer') {
-            return /summer|cold|ice|juice|drink|beverage|shake/.test(
-               `${cat} ${name}`,
-            );
-         }
-         if (activeFilter === 'snacks') {
-            return /snack|chips|cookie|namkeen|bakery/.test(`${cat} ${name}`);
-         }
-         if (activeFilter === 'drinks') {
-            return /drink|beverage|juice|coffee|tea/.test(`${cat} ${name}`);
-         }
-         if (activeFilter === 'beauty') {
-            return /beauty|care|cosmetic|skin/.test(`${cat} ${name}`);
-         }
-         if (activeFilter === 'pharmacy') {
-            return /medicine|pharma|health|wellness/.test(`${cat} ${name}`);
-         }
-         return true;
-      });
-
-      const fallback = source.length ? source : allProducts;
-      return pickDistinctByCategory(fallback, 10);
-   }, [activeFilter, allProducts]);
-
-   const snacksCategory = useMemo(() => {
-      const snacks = allProducts.filter((p) =>
-         /snack|chips|cookie/i.test(p.name || ''),
-      );
-      if (snacks.length) return snacks.slice(0, 8);
-      return allProducts.slice(0, 8);
-   }, [allProducts]);
-
-   const beveragesCategory = useMemo(() => {
-      const drinks = allProducts.filter((p) =>
-         /drink|juice|tea|coffee/i.test(p.name || ''),
-      );
-      if (drinks.length) return drinks.slice(0, 8);
-      return allProducts.slice(0, 8);
-   }, [allProducts]);
-
-   const topCategories = categories.slice(0, 8);
    const isDay = !isNight;
-
-   const categoryIconMap = {
-      breakfast: 'egg',
-      beverages: 'cafe',
-      bakery: 'pizza',
-      snacks: 'fast-food',
-      'personal-care': 'spa',
-      'eco-living': 'leaf',
-      pantry: 'settings',
-      fruits: 'apple',
-      vegetables: 'leaf',
-      dairy: 'water',
-      'meat-fish': 'fish',
-      frozen: 'snow',
-   };
 
    return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -303,8 +415,8 @@ export default function HomeScreen() {
                   styles.heroWrap,
                   {
                      backgroundColor: heroTheme.bg,
-                     paddingTop: insets.top + (isDay ? 6 : 10),
-                     paddingBottom: isDay ? 10 : 16,
+                     paddingTop: insets.top + (isDay ? 8 : 10),
+                     paddingBottom: isDay ? 10 : 12,
                   },
                ]}
             >
@@ -317,16 +429,16 @@ export default function HomeScreen() {
                <Text
                   style={[
                      styles.heroLabel,
-                     { color: heroTheme.label, fontSize: isDay ? 26 : 31 },
+                     { color: heroTheme.label, fontSize: isDay ? 24 : 27 },
                   ]}
                >
-                  Blinkit in
+                  QuickCart in
                </Text>
                <View style={styles.heroTitleRow}>
                   <Text
                      style={[
                         styles.heroTitle,
-                        { color: heroTheme.title, fontSize: isDay ? 17 : 20 },
+                        { color: heroTheme.title, fontSize: isDay ? 16 : 18 },
                      ]}
                   >
                      14 minutes
@@ -336,7 +448,11 @@ export default function HomeScreen() {
                      <Text style={styles.liveText}>24/7</Text>
                   </View>
                </View>
-               <View style={styles.locationRow}>
+               <TouchableOpacity
+                  style={styles.locationRow}
+                  activeOpacity={0.75}
+                  onPress={() => setLocationSheetVisible(true)}
+               >
                   <Text
                      style={[styles.locationTag, { color: heroTheme.label }]}
                   >
@@ -353,7 +469,7 @@ export default function HomeScreen() {
                      size={14}
                      color={heroTheme.label}
                   />
-               </View>
+               </TouchableOpacity>
             </View>
 
             <Animated.View
@@ -414,25 +530,89 @@ export default function HomeScreen() {
 
             <View style={styles.section}>
                <FlatList
-                  data={promoCards}
+                  data={groceryCards}
                   horizontal
                   keyExtractor={(item) => item.id}
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.promoRow}
                   renderItem={({ item }) => (
                      <TouchableOpacity
-                        style={[styles.promoCard, { backgroundColor: item.bg }]}
+                        style={styles.promoCard}
                         activeOpacity={0.85}
                      >
-                        <Text style={styles.promoLabel}>{item.label}</Text>
-                        <Text style={styles.promoTitle}>{item.title}</Text>
-                        <Text style={styles.promoSubtitle}>
-                           {item.subtitle}
-                        </Text>
-                        <Text style={styles.promoEmoji}>{item.emoji}</Text>
+                        <View style={styles.promoImageWrap}>
+                           <Image
+                              source={item.image}
+                              style={styles.promoImage}
+                              resizeMode='contain'
+                           />
+                        </View>
                      </TouchableOpacity>
                   )}
                />
+            </View>
+
+            <View style={styles.section}>
+               <Text style={styles.sectionTitle}>
+                  Frequently bought together
+               </Text>
+               <View style={styles.freqGrid}>
+                  {frequentlyBoughtTogetherCards.map((card) => (
+                     <TouchableOpacity
+                        key={card.id}
+                        style={styles.freqCard}
+                        activeOpacity={0.85}
+                     >
+                        <View style={styles.freqCardSurface}>
+                           <View
+                              style={[
+                                 styles.freqArtWrap,
+                                 { backgroundColor: card.bg },
+                              ]}
+                           >
+                              <View style={styles.freqImageStack}>
+                                 {card.items.map((item, index) => (
+                                    <View
+                                       key={`${card.id}-${item.id}`}
+                                       style={[
+                                          styles.freqImageFrame,
+                                          index === 0
+                                             ? styles.freqImageFrameLeft
+                                             : styles.freqImageFrameRight,
+                                       ]}
+                                    >
+                                       <Image
+                                          source={{ uri: item.image }}
+                                          style={styles.freqImage}
+                                          resizeMode='contain'
+                                       />
+                                    </View>
+                                 ))}
+                              </View>
+                              {card.moreText ? (
+                                 <View style={styles.freqMoreChip}>
+                                    <Text style={styles.freqMoreText}>
+                                       {card.moreText}
+                                    </Text>
+                                 </View>
+                              ) : null}
+                           </View>
+
+                           <View style={styles.freqTextBlock}>
+                              <Text style={styles.freqTitle} numberOfLines={2}>
+                                 {card.title}
+                              </Text>
+                              <Text
+                                 style={styles.freqSubtitle}
+                                 numberOfLines={1}
+                              >
+                                 Smart picks for faster reorders
+                              </Text>
+                           </View>
+                        </View>
+                     </TouchableOpacity>
+                  ))}
+               </View>
             </View>
 
             {loading && (
@@ -444,80 +624,41 @@ export default function HomeScreen() {
             <View style={styles.section}>
                <Text style={styles.sectionTitle}>Previously bought</Text>
                <FlatList
-                  data={previouslyBought}
+                  data={previouslyBoughtDemoProducts}
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   keyExtractor={(item) => item.id}
                   contentContainerStyle={styles.horizontalListPad}
                   renderItem={({ item }) => (
-                     <ProductCard
-                        product={item}
-                        variant='premium'
-                        showFooterCta
-                     />
-                  )}
-               />
-            </View>
-
-            <View style={[styles.section, styles.freshMarketWrap]}>
-               <View style={styles.sectionHeaderRow}>
-                  <View>
-                     <Text style={styles.sectionTitle}>Fresh market</Text>
-                     <Text style={styles.sectionCaption}>
-                        Handpicked seasonal finds
-                     </Text>
-                  </View>
-                  <View style={styles.priceChip}>
-                     <Text style={styles.priceChipText}>₹59 / Unit</Text>
-                  </View>
-               </View>
-
-               <FlatList
-                  data={summerSpecials}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  keyExtractor={(item) => item.id}
-                  contentContainerStyle={styles.horizontalListPad}
-                  renderItem={({ item }) => (
-                     <ProductCard
-                        product={item}
-                        showFooterCta
-                        variant='premium'
-                     />
-                  )}
-               />
-
-               <TouchableOpacity
-                  style={styles.allProductsBtn}
-                  activeOpacity={0.9}
-               >
-                  <Text style={styles.allProductsText}>See all products</Text>
-                  <Ionicons name='chevron-forward' size={16} color='#32406B' />
-               </TouchableOpacity>
-            </View>
-
-            <View style={styles.section}>
-               <Text style={styles.sectionTitle}>Snacks corner</Text>
-               <FlatList
-                  data={snacksCategory}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  keyExtractor={(item) => item.id}
-                  contentContainerStyle={styles.horizontalListPad}
-                  renderItem={({ item }) => <ProductCard product={item} />}
-               />
-            </View>
-
-            <View style={styles.section}>
-               <Text style={styles.sectionTitle}>Drinks & coolers</Text>
-               <FlatList
-                  data={beveragesCategory}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  keyExtractor={(item) => item.id}
-                  contentContainerStyle={styles.horizontalListPad}
-                  renderItem={({ item }) => (
-                     <ProductCard product={item} variant='premium' />
+                     <TouchableOpacity
+                        style={styles.demoProductCard}
+                        activeOpacity={0.9}
+                     >
+                        <View style={styles.demoProductImageWrap}>
+                           <Image
+                              source={{ uri: item.image }}
+                              style={styles.demoProductImage}
+                              resizeMode='contain'
+                           />
+                        </View>
+                        <Text style={styles.demoProductTitle} numberOfLines={2}>
+                           {item.title}
+                        </Text>
+                        <Text
+                           style={styles.demoProductDescription}
+                           numberOfLines={2}
+                        >
+                           {item.description}
+                        </Text>
+                        <View style={styles.demoProductFooter}>
+                           <Text style={styles.demoProductPrice}>
+                              {item.price}
+                           </Text>
+                           <View style={styles.demoAddButton}>
+                              <Text style={styles.demoAddButtonText}>ADD</Text>
+                           </View>
+                        </View>
+                     </TouchableOpacity>
                   )}
                />
             </View>
@@ -525,51 +666,85 @@ export default function HomeScreen() {
             <View style={styles.section}>
                <Text style={styles.sectionTitle}>Grocery & Kitchen</Text>
                <View style={styles.categoryGrid}>
-                  {topCategories.map((cat) => (
+                  {grocerySectionItems.map((item) => (
                      <TouchableOpacity
-                        key={cat.id}
+                        key={item.id}
                         style={styles.categoryTile}
                         activeOpacity={0.85}
                      >
-                        <View
-                           style={[
-                              styles.categoryIconWrap,
-                              { backgroundColor: cat.bgColor },
-                           ]}
-                        >
-                           <Ionicons
-                              name={
-                                 categoryIconMap[cat.id.toLowerCase()] ||
-                                 'bag-handle'
-                              }
-                              size={28}
-                              color='#222'
+                        <View style={styles.categoryIconWrap}>
+                           <Image
+                              source={{ uri: item.image }}
+                              style={styles.categoryImage}
+                              resizeMode='contain'
                            />
                         </View>
-                        <Text style={styles.categoryLabel} numberOfLines={2}>
-                           {cat.name}
-                        </Text>
                      </TouchableOpacity>
                   ))}
                </View>
             </View>
 
             <View style={styles.section}>
-               <Text style={styles.sectionTitle}>Recommended for you</Text>
+               <Text style={styles.sectionTitle}>Quick reorders</Text>
                <FlatList
-                  data={
-                     recommendedProducts.length
-                        ? recommendedProducts.slice(0, 10)
-                        : allProducts.slice(0, 10)
-                  }
+                  data={previouslyBoughtDemoProducts}
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  keyExtractor={(item) => item.id}
+                  keyExtractor={(item) => `${item.id}-more`}
                   contentContainerStyle={styles.horizontalListPad}
                   renderItem={({ item }) => (
-                     <ProductCard product={item} variant='premium' />
+                     <TouchableOpacity
+                        style={styles.demoProductCard}
+                        activeOpacity={0.9}
+                     >
+                        <View style={styles.demoProductImageWrap}>
+                           <Image
+                              source={{ uri: item.image }}
+                              style={styles.demoProductImage}
+                              resizeMode='contain'
+                           />
+                        </View>
+                        <Text style={styles.demoProductTitle} numberOfLines={2}>
+                           {item.title}
+                        </Text>
+                        <Text
+                           style={styles.demoProductDescription}
+                           numberOfLines={2}
+                        >
+                           {item.description}
+                        </Text>
+                        <View style={styles.demoProductFooter}>
+                           <Text style={styles.demoProductPrice}>
+                              {item.price}
+                           </Text>
+                           <View style={styles.demoAddButton}>
+                              <Text style={styles.demoAddButtonText}>ADD</Text>
+                           </View>
+                        </View>
+                     </TouchableOpacity>
                   )}
                />
+            </View>
+
+            <View style={styles.section}>
+               <Text style={styles.sectionTitle}>Snacks & Drinks</Text>
+               <View style={styles.categoryGrid}>
+                  {snacksSectionItems.map((item) => (
+                     <TouchableOpacity
+                        key={item.id}
+                        style={styles.categoryTile}
+                        activeOpacity={0.85}
+                     >
+                        <View style={styles.categoryIconWrap}>
+                           <Image
+                              source={{ uri: item.image }}
+                              style={styles.categoryImage}
+                              resizeMode='contain'
+                           />
+                        </View>
+                     </TouchableOpacity>
+                  ))}
+               </View>
             </View>
 
             {apiCategories.slice(0, 4).map((cat) => {
@@ -598,6 +773,107 @@ export default function HomeScreen() {
          <View pointerEvents='box-none'>
             <CartBar />
          </View>
+
+         <Modal
+            visible={locationSheetVisible}
+            transparent
+            animationType='slide'
+            onRequestClose={() => setLocationSheetVisible(false)}
+         >
+            <Pressable
+               style={styles.sheetOverlay}
+               onPress={() => setLocationSheetVisible(false)}
+            />
+            <View style={styles.sheetWrap}>
+               <View style={styles.sheetHandle} />
+
+               <View style={styles.sheetHeaderRow}>
+                  <Text style={styles.sheetTitle}>
+                     Select delivery location
+                  </Text>
+                  <TouchableOpacity
+                     style={styles.sheetCloseBtn}
+                     onPress={() => setLocationSheetVisible(false)}
+                  >
+                     <Ionicons name='close' size={24} color='#111' />
+                  </TouchableOpacity>
+               </View>
+
+               <View style={styles.sheetSearchWrap}>
+                  <Ionicons name='search' size={20} color='#6B7280' />
+                  <Text style={styles.sheetSearchText}>
+                     Search for area, street name...
+                  </Text>
+               </View>
+
+               <View style={styles.sheetList}>
+                  {addressActions.map((item, index) => (
+                     <TouchableOpacity
+                        key={item.id}
+                        style={[
+                           styles.sheetItem,
+                           index === addressActions.length - 1 &&
+                              styles.sheetItemLast,
+                        ]}
+                        activeOpacity={0.8}
+                     >
+                        <View style={styles.sheetIconWrap}>
+                           <Ionicons
+                              name={item.icon}
+                              size={22}
+                              color='#138A08'
+                           />
+                        </View>
+                        <View style={styles.sheetTextBlock}>
+                           <Text style={styles.sheetItemTitle}>
+                              {item.title}
+                           </Text>
+                           <Text
+                              style={styles.sheetItemSubtitle}
+                              numberOfLines={2}
+                           >
+                              {item.subtitle}
+                           </Text>
+                        </View>
+                        <Ionicons
+                           name='chevron-forward'
+                           size={20}
+                           color='#9CA3AF'
+                        />
+                     </TouchableOpacity>
+                  ))}
+               </View>
+
+               <View style={styles.savedSection}>
+                  <Text style={styles.savedTitle}>Your saved addresses</Text>
+                  <View style={styles.savedCard}>
+                     <View style={styles.savedCardHeader}>
+                        <View style={styles.savedAvatar}>
+                           <Ionicons name='home' size={18} color='#C99A00' />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                           <Text style={styles.savedCardTitle}>Home</Text>
+                           <Text
+                              style={styles.savedCardSubtitle}
+                              numberOfLines={2}
+                           >
+                              Shankar vihar colony, House no 172, Radha Krishna
+                              public school, Lal Kuan, Ghaziabad
+                           </Text>
+                           <Text style={styles.savedPhone}>
+                              Phone number: 7065429235
+                           </Text>
+                        </View>
+                        <Ionicons
+                           name='chevron-forward'
+                           size={18}
+                           color='#9CA3AF'
+                        />
+                     </View>
+                  </View>
+               </View>
+            </View>
+         </Modal>
       </SafeAreaView>
    );
 }
@@ -608,20 +884,21 @@ const styles = StyleSheet.create({
    heroWrap: {
       paddingHorizontal: Spacing.lg,
       overflow: 'hidden',
+      minHeight: 130,
    },
    heroBlob: {
       position: 'absolute',
-      width: 220,
-      height: 220,
-      borderRadius: 110,
-      top: -70,
-      right: -35,
-      opacity: 0.45,
+      width: 210,
+      height: 210,
+      borderRadius: 105,
+      top: -82,
+      right: -55,
+      opacity: 0.38,
    },
    heroLabel: {
       fontFamily: FontFamily.heading,
    },
-   heroTitleRow: { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
+   heroTitleRow: { flexDirection: 'row', alignItems: 'center', marginTop: 1 },
    heroTitle: { fontFamily: FontFamily.bodySemiBold },
    liveChip: {
       marginLeft: Spacing.sm,
@@ -640,15 +917,21 @@ const styles = StyleSheet.create({
       color: '#5E4C00',
       fontFamily: FontFamily.bodyBold,
    },
-   locationRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
+   locationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 0,
+      paddingVertical: 3,
+      alignSelf: 'flex-start',
+   },
    locationTag: { fontSize: 14, fontFamily: FontFamily.bodyBold },
    locationText: { fontSize: 14, fontFamily: FontFamily.body },
 
    stickyWrap: {
       backgroundColor: '#F7F8F4',
       paddingHorizontal: Spacing.lg,
-      paddingTop: 10,
-      paddingBottom: 8,
+      paddingTop: 8,
+      paddingBottom: 6,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 8 },
    },
@@ -706,34 +989,336 @@ const styles = StyleSheet.create({
    },
 
    section: { marginTop: Spacing.lg },
-   promoRow: { paddingHorizontal: Spacing.lg },
+   promoRow: { paddingHorizontal: Spacing.lg, paddingBottom: 4 },
    promoCard: {
-      width: 174,
-      borderRadius: BorderRadius.xl,
+      width: 206,
+      borderRadius: 24,
       marginRight: Spacing.sm,
-      padding: 12,
-      borderWidth: 1,
-      borderColor: '#DDE7EE',
-      minHeight: 118,
+      height: 140,
+      overflow: 'hidden',
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+      borderColor: '#EEF1EA',
    },
-   promoLabel: {
+   promoImageWrap: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 24,
+      overflow: 'hidden',
+      padding: 0,
+      backgroundColor: '#FFF',
+   },
+   promoImage: {
+      width: '100%',
+      height: '100%',
+   },
+
+   demoProductCard: {
+      width: 168,
+      marginRight: 12,
+      borderRadius: 24,
+      backgroundColor: '#FFFFFF',
+      padding: 12,
+      shadowColor: '#000',
+      shadowOpacity: 0.06,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 2,
+   },
+   demoProductImageWrap: {
+      width: '100%',
+      height: 120,
+      borderRadius: 18,
+      backgroundColor: '#F6F7F2',
+      overflow: 'hidden',
+      alignItems: 'center',
+      justifyContent: 'center',
+   },
+   demoProductImage: {
+      width: '86%',
+      height: '86%',
+   },
+   demoProductTitle: {
+      marginTop: 10,
+      fontSize: 14,
+      lineHeight: 18,
+      fontFamily: FontFamily.bodySemiBold,
+      color: '#1E1E1E',
+   },
+   demoProductDescription: {
+      marginTop: 4,
+      fontSize: 11,
+      lineHeight: 15,
+      fontFamily: FontFamily.body,
+      color: '#7B7B7B',
+      minHeight: 30,
+   },
+   demoProductFooter: {
+      marginTop: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+   },
+   demoProductPrice: {
+      fontSize: 14,
+      lineHeight: 18,
+      fontFamily: FontFamily.bodyBold,
+      color: '#1E1E1E',
+   },
+   demoAddButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: BorderRadius.full,
+      backgroundColor: '#EAF7EE',
+   },
+   demoAddButtonText: {
       fontSize: 11,
       fontFamily: FontFamily.bodyBold,
-      color: '#C43721',
+      color: '#14802E',
+      letterSpacing: 0.4,
    },
-   promoTitle: {
-      fontSize: 26,
-      fontFamily: FontFamily.headingSemiBold,
-      color: '#1E2A1F',
-      marginTop: 6,
+
+   freqCard: {
+      width: '47%',
+      marginBottom: 16,
    },
-   promoSubtitle: {
-      fontSize: 13,
+   freqGrid: {
+      paddingHorizontal: Spacing.lg,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+   },
+   freqCardSurface: {
+      borderRadius: 24,
+      backgroundColor: '#FFFFFF',
+      padding: 10,
+      shadowColor: '#000',
+      shadowOpacity: 0.06,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 2,
+   },
+   freqArtWrap: {
+      borderRadius: 18,
+      height: 148,
+      padding: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+   },
+   freqImageStack: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      flex: 1,
+      gap: 10,
+   },
+   freqImageFrame: {
+      flex: 1,
+      height: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 16,
+      backgroundColor: 'rgba(255,255,255,0.32)',
+   },
+   freqImageFrameLeft: {
+      transform: [{ rotate: '-4deg' }, { translateY: 4 }],
+   },
+   freqImageFrameRight: {
+      transform: [{ rotate: '4deg' }, { translateY: -2 }],
+   },
+   freqImage: {
+      width: '88%',
+      height: '88%',
+   },
+   freqMoreChip: {
+      position: 'absolute',
+      right: 10,
+      top: 10,
+      backgroundColor: '#FFFFFF',
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 2,
+   },
+   freqMoreText: {
+      fontSize: 11,
       fontFamily: FontFamily.bodySemiBold,
-      color: '#3A4B40',
-      marginTop: 4,
+      color: '#2D7A57',
    },
-   promoEmoji: { position: 'absolute', right: 10, bottom: 8, fontSize: 38 },
+   freqTitle: {
+      fontSize: 13,
+      lineHeight: 17,
+      fontFamily: FontFamily.bodySemiBold,
+      color: '#212121',
+      textAlign: 'left',
+   },
+   freqTextBlock: {
+      paddingHorizontal: 2,
+      paddingTop: 10,
+      gap: 2,
+   },
+   freqSubtitle: {
+      fontSize: 11,
+      lineHeight: 14,
+      fontFamily: FontFamily.body,
+      color: '#7D7D7D',
+   },
+
+   sheetOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.35)',
+   },
+   sheetWrap: {
+      marginTop: 'auto',
+      backgroundColor: '#F7F7FC',
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      paddingHorizontal: Spacing.lg,
+      paddingTop: 10,
+      paddingBottom: 24,
+      maxHeight: '88%',
+   },
+   sheetHandle: {
+      alignSelf: 'center',
+      width: 54,
+      height: 5,
+      borderRadius: 999,
+      backgroundColor: '#D7DAE2',
+      marginBottom: 14,
+   },
+   sheetHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 14,
+   },
+   sheetTitle: {
+      fontSize: 20,
+      fontFamily: FontFamily.headingSemiBold,
+      color: '#222',
+      flex: 1,
+      paddingRight: 12,
+   },
+   sheetCloseBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: '#FFFFFF',
+      alignItems: 'center',
+      justifyContent: 'center',
+   },
+   sheetSearchWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: '#FFFFFF',
+      borderRadius: 18,
+      paddingHorizontal: 16,
+      height: 58,
+      borderWidth: 1,
+      borderColor: '#ECEEF3',
+      marginBottom: 14,
+   },
+   sheetSearchText: {
+      flex: 1,
+      color: '#7C8594',
+      fontSize: 15,
+      fontFamily: FontFamily.bodyMedium,
+   },
+   sheetList: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: '#ECEEF3',
+      overflow: 'hidden',
+   },
+   sheetItem: {
+      minHeight: 66,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: '#F1F3F7',
+      gap: 12,
+   },
+   sheetItemLast: {
+      borderBottomWidth: 0,
+   },
+   sheetIconWrap: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: '#F0F8EE',
+      alignItems: 'center',
+      justifyContent: 'center',
+   },
+   sheetTextBlock: { flex: 1 },
+   sheetItemTitle: {
+      fontSize: 15,
+      fontFamily: FontFamily.bodySemiBold,
+      color: '#1E1E1E',
+   },
+   sheetItemSubtitle: {
+      marginTop: 2,
+      fontSize: 12,
+      fontFamily: FontFamily.body,
+      color: '#6B7280',
+      lineHeight: 17,
+   },
+   savedSection: {
+      marginTop: 18,
+   },
+   savedTitle: {
+      fontSize: 14,
+      color: '#8A8F9B',
+      fontFamily: FontFamily.bodyMedium,
+      marginBottom: 10,
+   },
+   savedCard: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: '#ECEEF3',
+      padding: 14,
+   },
+   savedCardHeader: {
+      flexDirection: 'row',
+      gap: 12,
+      alignItems: 'flex-start',
+   },
+   savedAvatar: {
+      width: 34,
+      height: 34,
+      borderRadius: 12,
+      backgroundColor: '#F6F0DA',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 2,
+   },
+   savedCardTitle: {
+      fontSize: 16,
+      fontFamily: FontFamily.bodySemiBold,
+      color: '#222',
+   },
+   savedCardSubtitle: {
+      marginTop: 4,
+      fontSize: 13,
+      fontFamily: FontFamily.body,
+      color: '#606775',
+      lineHeight: 18,
+   },
+   savedPhone: {
+      marginTop: 6,
+      fontSize: 13,
+      fontFamily: FontFamily.bodyMedium,
+      color: '#4E5562',
+   },
 
    loaderWrap: { paddingTop: 16 },
    sectionTitle: {
@@ -799,32 +1384,38 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      rowGap: Spacing.md,
+      rowGap: 14,
    },
    categoryTile: {
-      width: '23%',
-      backgroundColor: '#FFFFFF',
-      borderRadius: BorderRadius.xl,
-      borderWidth: 1,
-      borderColor: '#ECECEC',
-      paddingVertical: 10,
+      width: '31.5%',
+      backgroundColor: 'transparent',
+      borderRadius: 0,
+      paddingVertical: 0,
       alignItems: 'center',
    },
    categoryIconWrap: {
-      width: 54,
-      height: 54,
-      borderRadius: BorderRadius.lg,
+      width: '100%',
+      aspectRatio: 0.7,
+      borderRadius: 0,
       alignItems: 'center',
       justifyContent: 'center',
+      overflow: 'hidden',
+      padding: 0,
+      backgroundColor: 'transparent',
+   },
+   categoryImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 0,
    },
 
    categoryLabel: {
       marginTop: 7,
-      fontSize: 12,
-      fontFamily: FontFamily.bodyMedium,
-      color: '#1F1F1F',
+      fontSize: 11,
+      fontFamily: FontFamily.bodySemiBold,
+      color: '#262626',
       textAlign: 'center',
-      minHeight: 30,
+      minHeight: 32,
    },
    bottomSpace: { height: 30 },
 });
