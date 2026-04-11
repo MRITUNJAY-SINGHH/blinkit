@@ -1,52 +1,56 @@
 {
-   "expo": {
-      "name": "Bachat Bazar",
-      "slug": "bachat-bazar",
-      "version": "1.0.0",
-      "orientation": "portrait",
-      "icon": "./assets/images/icon.png",
-      "scheme": "bachat-bazar",
-      "userInterfaceStyle": "automatic",
-      "newArchEnabled": true,
-      "ios": {
-         "supportsTablet": true
+  "expo": {
+    "name": "Bachat Bazar",
+    "slug": "bachat-bazar",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "bachat-bazar",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "android": {
-         "adaptiveIcon": {
-            "backgroundColor": "#E6F4FE",
-            "foregroundImage": "./assets/images/android-icon-foreground.png",
-            "backgroundImage": "./assets/images/android-icon-background.png",
-            "monochromeImage": "./assets/images/android-icon-monochrome.png"
-         },
-         "edgeToEdgeEnabled": true,
-         "predictiveBackGestureEnabled": false
-      },
-      "web": {
-         "output": "static",
-         "favicon": "./assets/images/favicon.png"
-      },
-      "plugins": [
-         "expo-router",
-         [
-            "expo-splash-screen",
-            {
-               "image": "./assets/images/splash-icon.png",
-               "imageWidth": 200,
-               "resizeMode": "contain",
-               "backgroundColor": "#ffffff",
-               "dark": {
-                  "backgroundColor": "#000000"
-               }
-            }
-         ]
-      ],
-      "experiments": {
-         "typedRoutes": true,
-         "reactCompiler": true
-      },
-      "extra": {
-         "router": {}
-      },
-      "owner": "mritunjay1105"
-   }
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.mritunjay1105.bachatbazar"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "caa17d20-0be5-4134-b163-9b40186daacf"
+      }
+    },
+    "owner": "mritunjay1105"
+  }
 }
