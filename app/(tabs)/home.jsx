@@ -26,6 +26,7 @@ const quickFilters = [
    { id: 'all', label: 'All', icon: 'bag-handle-outline' },
    { id: 'summer', label: 'Summer', icon: 'sunny-outline' },
    { id: 'snacks', label: 'Snacks', icon: 'fast-food-outline' },
+   { id: 'mobile', label: 'Mobile', icon: 'phone-portrait-outline' },
    { id: 'drinks', label: 'Drinks', icon: 'cafe-outline' },
    { id: 'beauty', label: 'Beauty', icon: 'sparkles-outline' },
    { id: 'pharmacy', label: 'Pharmacy', icon: 'medkit-outline' },
@@ -39,7 +40,12 @@ const groceryBannerImages = {
 };
 
 const groceryCards = [
-   { id: 'g-2', image: groceryBannerImages.two },
+   {
+      id: 'g-2',
+      image: {
+         uri: 'https://cdn.jiostore.online/v2/jmd-asp/jdprod/wrkr/company/1/applications/645a057875d8c4882b096f7e/theme/pictures/free/original/theme-image-1775217945678.jpeg',
+      },
+   },
    { id: 'g-4', image: groceryBannerImages.four },
    { id: 'g-3', image: groceryBannerImages.three },
    { id: 'g-1', image: groceryBannerImages.one },
@@ -192,6 +198,22 @@ const frequentlyBoughtTogetherItems = [
       id: 'kitkat',
       image: 'https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=540/da/cms-assets/cms/product/rc-upload-1775469517019-153.png',
    },
+   {
+      id: 'oneplus-15',
+      image: 'https://cdn.jiostore.online/v2/jmd-asp/jdprod/wrkr/products/pictures/item/free/resize-w:250/one-plus/494742149/0/OfHXVeop9z-qaI1A1EqK-OnePlusOneplus15-MP-494742149-i-1.jpg',
+   },
+   {
+      id: 'pixel-10',
+      image: 'https://cdn.jiostore.online/v2/jmd-asp/jdprod/wrkr/products/pictures/item/free/resize-w:250/google/494582873/0/4fHEHEgttk-L8dI3gF2_n-GooglePixel10-494582873-i-1-1200Wx1200H.jpeg',
+   },
+   {
+      id: 'pixel-10-pro-fold',
+      image: 'https://cdn.jiostore.online/v2/jmd-asp/jdprod/wrkr/products/pictures/item/free/resize-w:250/google/494583323/0/yiVtzP3KVT-zaRva_f5rL-GooglePixel10ProFold-MP-494583323-i-1-1200Wx1200H.jpeg',
+   },
+   {
+      id: 'iphone-16',
+      image: 'https://cdn.jiostore.online/v2/jmd-asp/jdprod/wrkr/products/pictures/item/free/resize-w:250/apple/494423032/0/xCQYRCsXOR-AqKZhL-pVa-Apple-iPhone-16-Plus-494423032-i-1-1200Wx1200H.jpeg',
+   },
 ];
 
 const frequentlyBoughtTogetherCards = [
@@ -234,6 +256,47 @@ const frequentlyBoughtTogetherCards = [
          frequentlyBoughtTogetherItems[6],
          frequentlyBoughtTogetherItems[0],
       ],
+   },
+   {
+      id: 'mobiles',
+      title: 'Mobiles',
+      moreText: '',
+      bg: '#E9ECFF',
+      items: [
+         frequentlyBoughtTogetherItems[7],
+         frequentlyBoughtTogetherItems[8],
+      ],
+   },
+];
+
+const mobileDemoProducts = [
+   {
+      id: 'mobile-oneplus-15',
+      title: 'OnePlus 15 5G 256 GB, 12 GB RAM, Infinite Black',
+      description: 'Flagship performance with premium design',
+      price: '₹89,999',
+      image: frequentlyBoughtTogetherItems[7].image,
+   },
+   {
+      id: 'mobile-pixel-10',
+      title: 'Google Pixel 10',
+      description: 'Google AI camera phone with clean Android',
+      price: '₹84,999',
+      image: frequentlyBoughtTogetherItems[8].image,
+   },
+   {
+      id: 'mobile-pixel-10-pro-fold',
+      title: 'Google Pixel 10 Pro Fold 256 GB, 16 GB RAM, Moonstone, Mobile Phone',
+      description: 'Foldable flagship with premium camera and AI features',
+      price: '₹1,62,999',
+      image: frequentlyBoughtTogetherItems[9].image,
+   },
+   {
+      id: 'mobile-iphone-16',
+      title: 'iPhone 16',
+      description: 'Powerful performance with smooth iOS experience',
+      price: '₹96,499',
+      image: frequentlyBoughtTogetherItems[10].image,
    },
 ];
 
@@ -625,6 +688,48 @@ export default function HomeScreen() {
                <Text style={styles.sectionTitle}>Previously bought</Text>
                <FlatList
                   data={previouslyBoughtDemoProducts}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={styles.horizontalListPad}
+                  renderItem={({ item }) => (
+                     <TouchableOpacity
+                        style={styles.demoProductCard}
+                        activeOpacity={0.9}
+                     >
+                        <View style={styles.demoProductImageWrap}>
+                           <Image
+                              source={{ uri: item.image }}
+                              style={styles.demoProductImage}
+                              resizeMode='contain'
+                           />
+                        </View>
+                        <Text style={styles.demoProductTitle} numberOfLines={2}>
+                           {item.title}
+                        </Text>
+                        <Text
+                           style={styles.demoProductDescription}
+                           numberOfLines={2}
+                        >
+                           {item.description}
+                        </Text>
+                        <View style={styles.demoProductFooter}>
+                           <Text style={styles.demoProductPrice}>
+                              {item.price}
+                           </Text>
+                           <View style={styles.demoAddButton}>
+                              <Text style={styles.demoAddButtonText}>ADD</Text>
+                           </View>
+                        </View>
+                     </TouchableOpacity>
+                  )}
+               />
+            </View>
+
+            <View style={styles.section}>
+               <Text style={styles.sectionTitle}>Mobile picks</Text>
+               <FlatList
+                  data={mobileDemoProducts}
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   keyExtractor={(item) => item.id}
